@@ -56,6 +56,10 @@ theorem order_ge_2 (hfin : order P L < Cardinal.aleph0) : finorder P L ≥ 2 := 
   simp only [Nat.card_eq_fintype_card, Fintype.card_fin] at this
   assumption
 
+instance finite_points_on_a_line (hfin : order P L < Cardinal.aleph0) (l : L) : Finite {p : P | p 𝐈 l} := by
+  rw [← Cardinal.lt_aleph0_iff_finite]
+  rwa [card_points_on_a_line' P l]
+
 variable (L) in
 /-- In an affine plane of finite order `n`, every point lies on `n + 1` lines. -/
 theorem card_lines_through_a_point {n : ℕ} (h : finorder P L = n) (p : P) (hfin : order P L < Cardinal.aleph0) :
@@ -141,6 +145,13 @@ theorem card_lines_through_a_point {n : ℕ} (h : finorder P L = n) (p : P) (hfi
     simp only [Cardinal.lift_aleph0, Cardinal.lift_lt_aleph0]
     exact hfin
 
+instance finite_lines_through_a_point (hfin : order P L < Cardinal.aleph0) (p : P) :
+    Finite {l : L | p 𝐈 l} := by
+  have : Nat.card {a : L | p 𝐈 a} > 0 := by
+    rw [card_lines_through_a_point L rfl p hfin]
+    simp
+  exact (Nat.card_pos_iff.mp this).right
+
 variable (P L : Type*) [AffinePlane P L]
 
 /-- An affine plane of finite order `n` has `n ^ 2` points. -/
@@ -193,9 +204,7 @@ theorem card_points {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardina
           simp only [hq']
       have he := Equiv.lift_cardinal_eq (Equiv.ofBijective f hf)
       have hS' : Cardinal.mk {q : P | p ≠ q ∧ q 𝐈 l} = (n - 1 : ℕ) := by
-        have : Finite {q : P | q 𝐈 l} := by
-          rw [← Cardinal.lt_aleph0_iff_finite]
-          rwa [card_points_on_a_line' P l]
+        have := finite_points_on_a_line hfin l
         have : Finite {q | p ≠ q ∧ q 𝐈 l} := by
           apply Finite.Set.subset {q | q 𝐈 l}
           simp only [Set.setOf_subset_setOf, and_imp, imp_self, implies_true]
@@ -227,12 +236,8 @@ theorem card_points {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardina
     have hT : Cardinal.mk T = Cardinal.sum fun (l : {a | p 𝐈 a}) ↦ Cardinal.mk (S l.val) := by
       apply Cardinal.mk_sigma
     have hp : Cardinal.mk {a : L | p 𝐈 a} = (n + 1 : ℕ) := by
-      have hp' := card_lines_through_a_point L h p hfin
-      have hfin' : Nat.card {a : L | p 𝐈 a} > 0 := by
-        rw [hp']
-        simp
-      have : Finite {a : L | p 𝐈 a} := (Nat.card_pos_iff.mp hfin').right
-      rw [← Nat.cast_card, hp']
+      have := finite_lines_through_a_point hfin p
+      rw [← Nat.cast_card, card_lines_through_a_point L h p hfin]
     conv at hT =>
       rhs
       congr
@@ -294,6 +299,8 @@ instance finite_of_order_lt_aleph0 (hfin : order P L < Cardinal.aleph0) : Finite
     linarith
   exact (Nat.card_pos_iff.mp cardpos).right
 
+variable {P L : Type*} [AffinePlane P L]
+
 /-- In an affine plane of finite order `n`, every direction has `n` lines. -/
 theorem card_direction {n : ℕ} (h : finorder P L = n) {π : Set L} (hπ : π ∈ Direction P L) :
     Nat.card π = n := by
@@ -309,6 +316,13 @@ theorem card_direction {n : ℕ} (h : finorder P L = n) {π : Set L} (hπ : π �
   apply card_points_on_a_line
   rfl
 
+instance finite_direction (hfin : order P L < Cardinal.aleph0) {π : Set L} (hπ : π ∈ Direction P L) :
+    Finite π := by
+  have : Nat.card π > 0 := by
+    rw [card_direction rfl hπ]
+    linarith [order_ge_2 P L hfin]
+  exact (Nat.card_pos_iff.mp this).right
+
 /-- An affine plane of finite order `n` has `n + 1` directions. -/
 theorem card_directions {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardinal.aleph0) :
     Nat.card (Direction P L) = n + 1 := by
@@ -317,10 +331,57 @@ theorem card_directions {n : ℕ} (h : finorder P L = n) (hfin : order P L < Car
   rw [← card_lines_through_a_point L h p hfin, Cardinal.eq.mpr ⟨directions_equiv_lines_through_a_point p⟩]
   rfl
 
+instance finite_directions (hfin : order P L < Cardinal.aleph0) : Finite (Direction P L) := by
+  have : Nat.card (Direction P L) > 0 := by
+    rw [card_directions rfl hfin]
+    linarith [order_ge_2 P L hfin]
+  exact (Nat.card_pos_iff.mp this).right
+
+variable (P L : Type*) [AffinePlane P L]
+
 /-- An affine plane of finite order `n` has `n ^ 2 + n` lines. -/
 theorem card_lines {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardinal.aleph0) :
-    Nat.card L = n * (n + 1) := by
+    Nat.card L = (n + 1) * n := by
   --there are n + 1 directions, each of which has n lines.
-  sorry
+  let L' := (d : Direction P L) × d.val
+  have key : Nat.card L' = Nat.card L := by
+    let f : L' → L := fun ⟨_, l, _⟩ ↦ l
+    apply Nat.card_eq_of_bijective f
+    rw [Function.bijective_iff_existsUnique]
+    intro l
+    let π := {l' | IsParallel P l' l}
+    use ⟨⟨π, by apply Setoid.mem_classes⟩, ⟨l, Setoid.refl l⟩⟩
+    constructor
+    · dsimp [f]
+    · intro ⟨⟨π', hπ'⟩, ⟨l', hl'⟩⟩
+      dsimp [f]
+      intro hl'l
+      subst hl'l
+      have : π' = π := by
+        rw [← isparallel_iff_eq_directions (π₂ := π) l' l' hπ'
+          (by apply Setoid.mem_classes) hl' (Setoid.refl l')]
+        exact Setoid.refl l'
+      subst this
+      rfl
+  have lines_per_dir : ∀ π : Set L, π ∈ Direction P L → Cardinal.mk π = n := by
+    intro π hπ
+    have := finite_direction hfin hπ
+    rw [← Nat.cast_card, card_direction h hπ]
+  have card_dirs : Cardinal.mk (Direction P L) = (n + 1 : ℕ) := by
+    have := finite_directions hfin
+    rw [← Nat.cast_card, card_directions h hfin]
+  have hL' : Cardinal.mk L' = Cardinal.sum fun (d : Direction P L) ↦ Cardinal.mk d.val := by
+    apply Cardinal.mk_sigma
+  rw [← key]
+  unfold Nat.card
+  rw [hL']
+  conv =>
+    lhs
+    rhs
+    congr
+    intro d
+    rw [lines_per_dir d.val d.prop]
+  rw [Cardinal.sum_const, card_dirs]
+  simp only [Cardinal.lift_id, map_mul, Cardinal.toNat_natCast]
 
 end AffinePlane
