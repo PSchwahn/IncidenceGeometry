@@ -289,7 +289,7 @@ theorem card_points {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardina
   rw [one_le_mul_self_iff]
   linarith
 
-instance finite_of_order_lt_aleph0 (hfin : order P L < Cardinal.aleph0) : Finite P := by
+instance finite_points (hfin : order P L < Cardinal.aleph0) : Finite P := by
   have hP := card_points P L rfl hfin
   have nge2 := order_ge_2 P L hfin
   have cardpos : Nat.card P > 0 := by
@@ -383,5 +383,14 @@ theorem card_lines {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardinal
     rw [lines_per_dir d.val d.prop]
   rw [Cardinal.sum_const, card_dirs]
   simp only [Cardinal.lift_id, map_mul, Cardinal.toNat_natCast]
+
+instance finite_lines (hfin : order P L < Cardinal.aleph0) : Finite L := by
+  have hL := card_lines P L rfl hfin
+  have nge2 := order_ge_2 P L hfin
+  have cardpos : Nat.card L > 0 := by
+    rw [hL]
+    apply Nat.zero_lt_of_ne_zero
+    apply Nat.mul_ne_zero <;> linarith [nge2]
+  exact (Nat.card_pos_iff.mp cardpos).right
 
 end AffinePlane
