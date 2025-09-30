@@ -130,7 +130,7 @@ def direction_of_line (l : L) : Direction P L := ⟨{l' | IsParallel P l' l}, Se
 variable (P) in
 theorem mem_direction_of_self (l : L) : l ∈ (direction_of_line P l).val := Setoid.refl l
 
-theorem direction_eq_class (l : L) {π : Set L} (hπ : π ∈ Direction P L) (h : l ∈ π) : π = {l' | IsParallel P l' l} := by
+theorem unique_direction_of_line (l : L) {π : Set L} (hπ : π ∈ Direction P L) (h : l ∈ π) : π = direction_of_line P l := by
   obtain ⟨l'', rfl⟩ := hπ
   ext l
   constructor
@@ -145,7 +145,7 @@ theorem isparallel_iff_eq_directions (l₁ l₂ : L) {π₁ π₂ : Set L} (hπ�
     IsParallel P l₁ l₂ ↔ π₁ = π₂ := by
   constructor
   · intro h
-    rw [direction_eq_class l₁ hπ₁ h₁, direction_eq_class l₂ hπ₂ h₂]
+    rw [unique_direction_of_line l₁ hπ₁ h₁, unique_direction_of_line l₂ hπ₂ h₂]
     ext l
     constructor
     · intro hl

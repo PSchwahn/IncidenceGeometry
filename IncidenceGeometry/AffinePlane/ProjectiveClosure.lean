@@ -94,20 +94,38 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
       constructor
       · trivial
       · exact mem_direction_of_self P l'
-    | line_at_infty, line_at_infty =>
-      absurd hne
-      rfl
+    | line_at_infty, line_at_infty => exact False.elim (hne rfl)
   unique_meet := by
     intro l₁ l₂ p hne hpl₁ hpl₂
     match l₁, l₂, p with
-    | line_of_affine l₁', line_of_affine l₂', point_of_affine p' => sorry
-    | line_of_affine l₁', line_of_affine l₂', point_at_infty π hπ => sorry
-    | line_of_affine l', line_at_infty, point_of_affine p' => sorry
-    | line_of_affine l', line_at_infty, point_at_infty π hπ => sorry
-    | line_at_infty, line_of_affine l', point_of_affine p' => sorry
-    | line_at_infty, line_of_affine l', point_at_infty π hπ => sorry
-    | line_at_infty, line_at_infty, point_of_affine p' => sorry
-    | line_at_infty, line_at_infty, point_at_infty π hπ => sorry
+    | line_of_affine l₁', line_of_affine l₂', point_of_affine p' =>
+      by_cases h : IsParallel P l₁' l₂'
+      · absurd hne
+        congr
+        apply h
+        use p'
+        exact ⟨hpl₁, hpl₂⟩
+      · simp only [h, reduceDIte]
+        congr
+        apply unique_meet l₁' l₂'
+        exact ⟨hpl₁, hpl₂⟩
+    | line_of_affine l₁', line_of_affine l₂', point_at_infty π hπ =>
+      by_cases h : IsParallel P l₁' l₂'
+      · simp only [h, reduceDIte]
+        congr
+        exact unique_direction_of_line l₁' hπ hpl₁
+      · rw [isparallel_iff_eq_directions l₁' l₂' hπ hπ hpl₁ hpl₂] at h
+        exact False.elim (h rfl)
+    | line_of_affine l', line_at_infty, point_of_affine p' => exact False.elim hpl₂
+    | line_of_affine l', line_at_infty, point_at_infty π hπ =>
+      congr
+      exact unique_direction_of_line l' hπ hpl₁
+    | line_at_infty, line_of_affine l', point_of_affine p' => exact False.elim hpl₁
+    | line_at_infty, line_of_affine l', point_at_infty π hπ =>
+      congr
+      exact unique_direction_of_line l' hπ hpl₂
+    | line_at_infty, line_at_infty, point_of_affine p' => exact False.elim hpl₁
+    | line_at_infty, line_at_infty, point_at_infty π hπ => exact False.elim (hne rfl)
   nondeg' := by
     obtain ⟨p', hp'inj, hp'⟩ := nondeg P L
     sorry
