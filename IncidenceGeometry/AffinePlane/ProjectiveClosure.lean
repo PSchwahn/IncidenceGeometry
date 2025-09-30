@@ -44,7 +44,24 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
       · exact line_of_point_of_direction_mem_direction q' hπ
       · exact (directions_equiv_lines_through_a_point q' ⟨π, hπ⟩).prop
     | point_at_infty π₁ hπ₁, point_at_infty π₂ hπ₂ => trivial
-  unique_join := sorry
+  unique_join := by
+    intro p₁ p₂ l hne hp₁l hp₂l
+    match p₁, p₂, l with
+    | point_of_affine p₁', point_of_affine p₂', line_of_affine l' =>
+      rw [unique_join p₁' p₂' l' (fun h ↦ hne (by rw [h])) hp₁l hp₂l]
+    | point_of_affine p₁', point_of_affine p₂', line_at_infty => exact False.elim hp₁l
+    | point_of_affine p₁', point_at_infty π hπ, line_of_affine l' =>
+      simp only [unique_line_of_point_of_direction p₁' hπ l' hp₁l hp₂l]
+    | point_of_affine p₁', point_at_infty π hπ, line_at_infty => exact False.elim hp₁l
+    | point_at_infty π hπ, point_of_affine p₂', line_of_affine l' =>
+      simp only [unique_line_of_point_of_direction p₂' hπ l' hp₂l hp₁l]
+    | point_at_infty π hπ, point_of_affine p₂', line_at_infty => exact False.elim hp₂l
+    | point_at_infty π₁ hπ₁, point_at_infty π₂ hπ₂, line_of_affine l' =>
+      absurd hne
+      congr
+      rw [← isparallel_iff_eq_directions (P := P) l' l' hπ₁ hπ₂ hp₁l hp₂l]
+      exact Setoid.refl l'
+    | point_at_infty π₁ hπ₁, point_at_infty π₂ hπ₂, line_at_infty => rfl
   meet := fun l₁ l₂ ↦ match l₁, l₂ with
     | line_of_affine l₁', line_of_affine l₂' => by
       by_cases h : (IsParallel P l₁' l₂')
@@ -80,7 +97,17 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
     | line_at_infty, line_at_infty =>
       absurd hne
       rfl
-  unique_meet := sorry
+  unique_meet := by
+    intro l₁ l₂ p hne hpl₁ hpl₂
+    match l₁, l₂, p with
+    | line_of_affine l₁', line_of_affine l₂', point_of_affine p' => sorry
+    | line_of_affine l₁', line_of_affine l₂', point_at_infty π hπ => sorry
+    | line_of_affine l', line_at_infty, point_of_affine p' => sorry
+    | line_of_affine l', line_at_infty, point_at_infty π hπ => sorry
+    | line_at_infty, line_of_affine l', point_of_affine p' => sorry
+    | line_at_infty, line_of_affine l', point_at_infty π hπ => sorry
+    | line_at_infty, line_at_infty, point_of_affine p' => sorry
+    | line_at_infty, line_at_infty, point_at_infty π hπ => sorry
   nondeg' := by
     obtain ⟨p', hp'inj, hp'⟩ := nondeg P L
     sorry

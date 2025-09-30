@@ -356,7 +356,19 @@ theorem line_of_point_of_direction_mem_direction (p : P) {π : Set L} (hπ : π 
     rw [← h₂, ←h₁]
   apply mem_direction_of_self'
 
---API for these definitions?
+theorem unique_line_of_point_of_direction (p : P) {π : Set L} (hπ : π ∈ Direction P L) (l : L) (h₁ : p 𝐈 l) (h₂ : l ∈ π) :
+    l = (directions_equiv_lines_through_a_point p ⟨π, hπ⟩).val := by
+  have : l = (directions_equiv_lines_through_a_point p (lines_through_a_point_equiv_directions p ⟨l, h₁⟩)).val := by
+    unfold directions_equiv_lines_through_a_point
+    simp only [Equiv.symm_apply_apply]
+  rw [this]
+  congr
+  unfold lines_through_a_point_equiv_directions
+  simp only [Equiv.ofBijective_apply]
+  simp only [← (isparallel_iff_eq_directions (P := P) l l (direction_of_line P l).prop hπ (mem_direction_of_self P l) h₂).mp (Setoid.refl l),
+    Subtype.coe_eta]
+
+--more API for the above definitions?
 
 variable (L) in
 /-- Any two points lie on the same number of lines. -/
