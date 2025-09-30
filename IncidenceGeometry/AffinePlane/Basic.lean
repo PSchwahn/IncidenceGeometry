@@ -320,17 +320,17 @@ theorem exists_line_not_parallel_to_two_lines (l₁ l₂ : L) : ∃ l : L, ¬ Is
     exact isparallel_equivalence.symm h
 
 noncomputable def lines_through_a_point_equiv_directions (p : P) : {l : L | p 𝐈 l} ≃ Direction P L :=
-  Equiv.ofBijective (fun ⟨l, _ ⟩ ↦ ⟨{ l' | IsParallel P l' l }, Setoid.mem_classes _ _⟩) <| by
+  Equiv.ofBijective (fun ⟨l, _ ⟩ ↦ direction_of_line P l) <| by
   constructor
   · intro ⟨l₁, hl₁⟩ ⟨l₂, hl₂⟩ hl₁₂
     simp only [Subtype.mk.injEq] at *
     simp only [Set.mem_setOf_eq] at *
     have hπ : { l' | IsParallel P l' l₁ } ∈ Direction P L := Setoid.mem_classes _ _
-    obtain ⟨l₃, ⟨hl₃, hl₃π⟩, l₃unique⟩ := direction_partitions hπ p
+    obtain ⟨l₃, ⟨hl₃, hl₃π⟩, l₃unique⟩ := direction_partitions (direction_of_line P l₁).prop p
     rw [l₃unique l₁ ⟨hl₁, isparallel_equivalence.refl _⟩]
     rw [l₃unique l₂ ⟨hl₂, by rw [hl₁₂]; exact isparallel_equivalence.refl _⟩]
   · intro ⟨π, hπ⟩
-    simp only [Set.coe_setOf, Subtype.mk.injEq, Subtype.exists, exists_prop]
+    simp only [Set.coe_setOf, Subtype.exists, exists_prop]
     obtain ⟨l, ⟨hl, hlπ⟩, l₃unique⟩ := direction_partitions hπ p
     use l, hl
     obtain ⟨l₁, rfl⟩ := hπ
@@ -344,6 +344,17 @@ noncomputable def lines_through_a_point_equiv_directions (p : P) : {l : L | p �
 /-- Given a point `p`, the canonical correspondence between directions and lines through `p`. -/
 noncomputable def directions_equiv_lines_through_a_point (p : P) : Direction P L ≃ {l : L | p 𝐈 l} :=
   (lines_through_a_point_equiv_directions p).symm
+
+theorem mem_direction_of_self' (p : P) (l : L) (hl : p 𝐈 l) : l ∈ (lines_through_a_point_equiv_directions p ⟨l, hl⟩).val := mem_direction_of_self P l
+
+theorem line_of_point_of_direction_mem_direction (p : P) {π : Set L} (hπ : π ∈ Direction P L) :
+    (directions_equiv_lines_through_a_point p ⟨π, hπ⟩).val ∈ π := by
+  have h₁ : lines_through_a_point_equiv_directions p (directions_equiv_lines_through_a_point p ⟨π, hπ⟩) = ⟨π, hπ⟩ := Equiv.apply_symm_apply _ _
+  have h₂ : (⟨π, hπ⟩ : Direction P L).val = π := rfl
+  conv =>
+    lhs
+    rw [← h₂, ←h₁]
+  apply mem_direction_of_self'
 
 --API for these definitions?
 

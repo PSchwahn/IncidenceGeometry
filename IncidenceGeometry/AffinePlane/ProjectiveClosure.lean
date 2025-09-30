@@ -30,7 +30,20 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
     | point_of_affine p', point_at_infty π hπ => line_of_affine (directions_equiv_lines_through_a_point p' ⟨π, hπ⟩)
     | point_at_infty π hπ, point_of_affine q' => line_of_affine (directions_equiv_lines_through_a_point q' ⟨π, hπ⟩)
     | point_at_infty π₁ hπ₁, point_at_infty π₂ hπ₂ => line_at_infty
-  join_incident := sorry
+  join_incident := by
+    intro p q hne
+    match p, q with
+    | point_of_affine p', point_of_affine q' =>
+      apply join_incident p' q' (fun h ↦ hne (by rw [h]))
+    | point_of_affine p', point_at_infty π hπ =>
+      constructor
+      · exact (directions_equiv_lines_through_a_point p' ⟨π, hπ⟩).prop
+      · exact line_of_point_of_direction_mem_direction p' hπ
+    | point_at_infty π hπ, point_of_affine q' =>
+      constructor
+      · exact line_of_point_of_direction_mem_direction q' hπ
+      · exact (directions_equiv_lines_through_a_point q' ⟨π, hπ⟩).prop
+    | point_at_infty π₁ hπ₁, point_at_infty π₂ hπ₂ => trivial
   unique_join := sorry
   meet := fun l₁ l₂ ↦ match l₁, l₂ with
     | line_of_affine l₁', line_of_affine l₂' => by
@@ -56,8 +69,16 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
             rw [this]
           exact mem_direction_of_self P l₂'
       · exact meet_incident l₁' l₂' h
-    | line_of_affine l', line_at_infty => sorry
-    | line_at_infty, line_of_affine l' => sorry
-    | line_at_infty, line_at_infty => sorry
+    | line_of_affine l', line_at_infty =>
+      constructor
+      · exact mem_direction_of_self P l'
+      · trivial
+    | line_at_infty, line_of_affine l' =>
+      constructor
+      · trivial
+      · exact mem_direction_of_self P l'
+    | line_at_infty, line_at_infty =>
+      absurd hne
+      rfl
   unique_meet := sorry
   nondeg' := sorry
