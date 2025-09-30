@@ -93,7 +93,7 @@ instance parallelSetoid : Setoid L where
   iseqv := isparallel_equivalence
 
 /-- If two lines are not parallel, they intersect in a unique point. -/
-theorem unique_intersection_of_not_parallel {l₁ l₂ : L} (h : ¬ IsParallel P l₁ l₂) : ∃! p : P, p 𝐈 l₁ ∧ p 𝐈 l₂ := by
+theorem unique_meet_of_not_parallel {l₁ l₂ : L} (h : ¬ IsParallel P l₁ l₂) : ∃! p : P, p 𝐈 l₁ ∧ p 𝐈 l₂ := by
   unfold IsParallel at h
   push_neg at h
   obtain ⟨⟨p, h₁, h₂⟩, hne⟩ := h
@@ -105,11 +105,30 @@ theorem unique_intersection_of_not_parallel {l₁ l₂ : L} (h : ¬ IsParallel P
   apply hne
   rfl
 
+/-- The (unique) meet of two non-parallel lines. -/
+noncomputable def meet (l₁ l₂ : L) (h : ¬ IsParallel P l₁ l₂) : P :=
+  Classical.choose (unique_meet_of_not_parallel h)
+
+theorem meet_incident (l₁ l₂ : L) (h : ¬ IsParallel P l₁ l₂) : meet l₁ l₂ h 𝐈 l₁ ∧ meet l₁ l₂ h 𝐈 l₂ :=
+  (Classical.choose_spec (unique_meet_of_not_parallel h)).left
+
+theorem unique_meet (l₁ l₂ : L) (h : ¬ IsParallel P l₁ l₂) (p : P) (hp : p 𝐈 l₁ ∧ p 𝐈 l₂) :
+    p = meet l₁ l₂ h :=
+  (Classical.choose_spec (unique_meet_of_not_parallel h)).right p hp
+
 variable (P L) in
 /-- The set of directions, i.e. equivalence classes of the parallel lines. -/
 def Direction := Setoid.classes (parallelSetoid P L : Setoid L)
 
 --rather use quotient type?
+
+--todo: use this API more widely in proofs, instead of the implementation of Direction?
+variable (P) in
+/-- The direction in which the line `l` lies. -/
+def direction_of_line (l : L) : Direction P L := ⟨{l' | IsParallel P l' l}, Setoid.mem_classes _ _⟩
+
+variable (P) in
+theorem mem_direction_of_self (l : L) : l ∈ (direction_of_line P l).val := Setoid.refl l
 
 theorem direction_eq_class (l : L) {π : Set L} (hπ : π ∈ Direction P L) (h : l ∈ π) : π = {l' | IsParallel P l' l} := by
   obtain ⟨l'', rfl⟩ := hπ
@@ -337,7 +356,7 @@ noncomputable def equiv_lines_through_a_point (p₁ p₂ : P) : {l : L | p₁ �
 theorem unique_intersection_of_direction_of_line (l l' : L) {π : Set L} (hπ : π ∈ Direction P L)
       (hl : ¬ l ∈ π) (hl' : l' ∈ π) :
     ∃! p : P, p 𝐈 l ∧ p 𝐈 l' := by
-  apply unique_intersection_of_not_parallel
+  apply unique_meet_of_not_parallel
   obtain ⟨l'', rfl⟩ := hπ
   simp only [Set.mem_setOf_eq] at *
   intro h

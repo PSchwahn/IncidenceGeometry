@@ -32,7 +32,32 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
     | point_at_infty π₁ hπ₁, point_at_infty π₂ hπ₂ => line_at_infty
   join_incident := sorry
   unique_join := sorry
-  meet := sorry
-  meet_incident := sorry
+  meet := fun l₁ l₂ ↦ match l₁, l₂ with
+    | line_of_affine l₁', line_of_affine l₂' => by
+      by_cases h : (IsParallel P l₁' l₂')
+      · let ⟨π, hπ⟩ := direction_of_line P l₁'
+        exact point_at_infty π hπ
+      · exact point_of_affine (meet l₁' l₂' h)
+    | line_of_affine l', line_at_infty => let ⟨π, hπ⟩ := direction_of_line P l'; point_at_infty π hπ
+    | line_at_infty, line_of_affine l' => let ⟨π, hπ⟩ := direction_of_line P l'; point_at_infty π hπ
+    | line_at_infty, line_at_infty => point_of_affine (Nonempty.some (exists_point P L))
+  meet_incident := by
+    intro l₁ l₂ hne
+    match l₁, l₂ with
+    | line_of_affine l₁', line_of_affine l₂' =>
+      by_cases h : (IsParallel P l₁' l₂') <;> simp only [h, reduceDIte]
+      · constructor
+        · exact mem_direction_of_self P l₁'
+        · have := (isparallel_iff_eq_directions l₁' l₂' (direction_of_line P l₁').prop (direction_of_line P l₂').prop
+            (mem_direction_of_self P l₁') (mem_direction_of_self P l₂')).mp h
+          conv =>
+            lhs
+            congr
+            rw [this]
+          exact mem_direction_of_self P l₂'
+      · exact meet_incident l₁' l₂' h
+    | line_of_affine l', line_at_infty => sorry
+    | line_at_infty, line_of_affine l' => sorry
+    | line_at_infty, line_at_infty => sorry
   unique_meet := sorry
   nondeg' := sorry
