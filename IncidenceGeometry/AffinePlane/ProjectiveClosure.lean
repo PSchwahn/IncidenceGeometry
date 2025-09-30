@@ -81,4 +81,6 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
       absurd hne
       rfl
   unique_meet := sorry
-  nondeg' := sorry
+  nondeg' := by
+    obtain ⟨p', hp'inj, hp'⟩ := nondeg P L
+    sorry

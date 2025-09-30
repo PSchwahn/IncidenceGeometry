@@ -110,7 +110,7 @@ theorem card_lines_through_a_point {n : ℕ} (h : finorder P L = n) (p : P) (hfi
         symm
         exact parallel_unique hpl' hll'
       · right
-        obtain ⟨q, ⟨hql, hql'⟩, hqunique⟩ := unique_intersection_of_not_parallel hll'
+        obtain ⟨q, ⟨hql, hql'⟩, hqunique⟩ := unique_meet_of_not_parallel hll'
         use q, hql
         symm
         exact unique_join _ _ _ (pisnt q hql) hpl' hql'
