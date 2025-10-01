@@ -31,27 +31,11 @@ theorem card_points_on_a_line {n : ℕ} (h : finorder P L = n) (l : L) :
 
 variable (P L) in
 theorem order_ge_2 (hfin : order P L < Cardinal.aleph0) : finorder P L ≥ 2 := by
-  obtain ⟨p, pinj, _⟩ := nondeg P L
+  obtain ⟨l⟩ := exists_line P L
   unfold finorder
-  let l : L := join (p 0) (p 1)
   rw [← card_points_on_a_line' P l] at *
   have lfin := Cardinal.lt_aleph0_iff_finite.mp hfin
-  have := join_incident (p 0) (p 1) (Function.Injective.ne pinj (by simp)) (L := L)
-  let f : Fin 2 → {q : P | q 𝐈 l} := ![⟨p 0, this.1⟩, ⟨p 1, this.2⟩]
-  have finj : Function.Injective f := by
-    intro i j hij
-    unfold f at hij
-    fin_cases i <;> fin_cases j
-    · rfl
-    · simp only [Set.coe_setOf, Set.mem_setOf_eq, Fin.isValue, Fin.zero_eta, Matrix.cons_val_zero,
-      Fin.mk_one, Matrix.cons_val_one, Matrix.cons_val_fin_one, Subtype.mk.injEq] at hij
-      absurd pinj hij
-      exact zero_ne_one
-    · simp only [Set.coe_setOf, Set.mem_setOf_eq, Fin.isValue, Fin.zero_eta, Matrix.cons_val_zero,
-      Fin.mk_one, Matrix.cons_val_one, Matrix.cons_val_fin_one, Subtype.mk.injEq] at hij
-      absurd pinj hij
-      exact one_ne_zero
-    · rfl
+  obtain ⟨f, finj⟩ := two_points_of_line P l
   have := Nat.card_le_card_of_injective f finj
   simp only [Nat.card_eq_fintype_card, Fintype.card_fin] at this
   assumption

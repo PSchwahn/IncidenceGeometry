@@ -453,4 +453,35 @@ theorem equiv_directions {π₁ π₂ : Set L} (hπ₁ : π₁ ∈ Direction P L
     exact h₂ (isparallel_equivalence.trans hl₂ (isparallel_equivalence.symm h))
   exact ⟨(direction_equiv_points_on_a_line l hπ₁ h₁).trans (direction_equiv_points_on_a_line l hπ₂ h₂).symm⟩
 
+variable (P) in
+theorem two_points_of_line (l : L) : ∃ f : Fin 2 → {p : P | p 𝐈 l}, Function.Injective f := by
+  obtain ⟨p, pinj, _⟩ := nondeg P L
+  have := join_incident (p 0) (p 1) (Function.Injective.ne pinj (by simp)) (L := L)
+  obtain ⟨e⟩ := equiv_points_on_a_line P (join (p 0) (p 1)) l
+  let (eq := h₁) ⟨p₁, hp₁⟩ := e ⟨p 0, this.1⟩
+  let (eq := h₂) ⟨p₂, hp₂⟩ := e ⟨p 1, this.2⟩
+  let f : Fin 2 → {q : P | q 𝐈 l} := ![⟨p₁, hp₁⟩, ⟨p₂, hp₂⟩]
+  use f
+  intro i j hij
+  unfold f at hij
+  fin_cases i <;> fin_cases j
+  · rfl
+  · simp only [Set.coe_setOf, Set.mem_setOf_eq, Fin.isValue, Fin.zero_eta, Matrix.cons_val_zero,
+    Fin.mk_one, Matrix.cons_val_one, Matrix.cons_val_fin_one, Subtype.mk.injEq] at hij
+    subst hij
+    rw [← h₁] at h₂
+    apply Equiv.injective e at h₂
+    rw [Subtype.mk.injEq] at h₂
+    apply pinj at h₂
+    simp only [one_ne_zero] at h₂
+  · simp only [Set.coe_setOf, Set.mem_setOf_eq, Fin.isValue, Fin.zero_eta, Matrix.cons_val_zero,
+    Fin.mk_one, Matrix.cons_val_one, Matrix.cons_val_fin_one, Subtype.mk.injEq] at hij
+    subst hij
+    rw [← h₁] at h₂
+    apply Equiv.injective e at h₂
+    rw [Subtype.mk.injEq] at h₂
+    apply pinj at h₂
+    simp only [one_ne_zero] at h₂
+  · rfl
+
 end AffinePlane

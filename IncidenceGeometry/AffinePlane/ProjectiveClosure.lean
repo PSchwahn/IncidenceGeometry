@@ -127,5 +127,15 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
     | line_at_infty, line_at_infty, point_of_affine p' => exact False.elim hpl₁
     | line_at_infty, line_at_infty, point_at_infty π hπ => exact False.elim (hne rfl)
   nondeg' := by
-    obtain ⟨p', hp'inj, hp'⟩ := nondeg P L
-    sorry
+    obtain ⟨d, dinj⟩ := ge_3_directions P L
+    obtain ⟨l, hl⟩ := line_of_direction (d 0).prop
+    obtain ⟨p', p'inj⟩ := two_points_of_line P l
+    let p : Fin 4 → ProjectiveClosure.Point P L := fun i ↦ match i with
+      | 0 => point_of_affine (p' 0)
+      | 1 => point_of_affine (p' 1)
+      | 2 => point_at_infty (d 1).val (d 1).prop
+      | 3 => point_at_infty (d 2).val (d 2).prop
+    use p
+    constructor
+    · sorry
+    · sorry
