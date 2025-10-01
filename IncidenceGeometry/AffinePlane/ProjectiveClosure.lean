@@ -128,8 +128,16 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
     | line_at_infty, line_at_infty, point_at_infty π hπ => exact False.elim (hne rfl)
   nondeg' := by
     obtain ⟨d, dinj⟩ := ge_3_directions P L
-    obtain ⟨l, hl⟩ := line_of_direction (d 0).prop
-    obtain ⟨p', p'inj⟩ := two_points_of_line P l
+    obtain ⟨l₀, hl₀⟩ := line_of_direction (d 0).prop
+    obtain ⟨p', p'inj⟩ := two_points_of_line P l₀
+    have l₀join : l₀ = join (p' 0).val (p' 1).val := by
+      apply unique_join
+      · intro h
+        apply Subtype.val_injective at h
+        apply p'inj at h
+        exact zero_ne_one h
+      · exact (p' 0).prop
+      · exact (p' 1).prop
     let p : Fin 4 → ProjectiveClosure.Point P L := fun i ↦ match i with
       | 0 => point_of_affine (p' 0)
       | 1 => point_of_affine (p' 1)
@@ -137,5 +145,68 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
       | 3 => point_at_infty (d 2).val (d 2).prop
     use p
     constructor
-    · sorry
-    · sorry
+    · intro i j hij
+      fin_cases i <;> fin_cases j <;> simp only [reduceCtorEq, p, point_of_affine.injEq, point_at_infty.injEq, Subtype.val_inj] at *
+      · apply p'inj at hij
+        simp at hij
+      · apply p'inj at hij
+        simp at hij
+      · apply dinj at hij
+        simp at hij
+      · apply dinj at hij
+        simp at hij
+    · intro l i
+      match l with
+      | line_of_affine l' =>
+        fin_cases i <;> unfold p <;> dsimp <;> simp only [not_and]
+        · intro h₀ h₁
+          have l'join : l' = join (p' 0).val (p' 1).val := by
+            apply unique_join
+            · intro h
+              apply Subtype.val_injective at h
+              apply p'inj at h
+              exact zero_ne_one h
+            · exact h₀
+            · exact h₁
+          rw [l'join, ←l₀join]
+          intro h₀₁
+          have := (isparallel_iff_eq_directions l₀ l₀ (d 0).prop (d 1).prop hl₀ h₀₁).mp (Setoid.refl l₀)
+          apply Subtype.val_injective at this
+          apply dinj at this
+          simp at this
+        · intro _ h₁ h₂
+          have := (isparallel_iff_eq_directions l' l' (d 1).prop (d 2).prop h₁ h₂).mp (Setoid.refl l')
+          apply Subtype.val_injective at this
+          apply dinj at this
+          simp at this
+        · intro h₁ h₂ _
+          have := (isparallel_iff_eq_directions l' l' (d 1).prop (d 2).prop h₁ h₂).mp (Setoid.refl l')
+          apply Subtype.val_injective at this
+          apply dinj at this
+          simp at this
+        · intro h₂ h₀ h₁
+          have l'join : l' = join (p' 0).val (p' 1).val := by
+            apply unique_join
+            · intro h
+              apply Subtype.val_injective at h
+              apply p'inj at h
+              exact zero_ne_one h
+            · exact h₀
+            · exact h₁
+          revert h₂
+          rw [l'join, ←l₀join]
+          intro h₀₂
+          have := (isparallel_iff_eq_directions l₀ l₀ (d 0).prop (d 2).prop hl₀ h₀₂).mp (Setoid.refl l₀)
+          apply Subtype.val_injective at this
+          apply dinj at this
+          simp at this
+      | line_at_infty =>
+        fin_cases i <;> unfold p <;> dsimp <;> simp only [not_and]
+        · intro h _ _
+          exact h
+        · intro h _ _
+          exact h
+        · intro _ _ h
+          exact h
+        · intro _ h _
+          exact h
