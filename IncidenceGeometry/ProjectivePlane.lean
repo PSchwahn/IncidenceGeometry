@@ -259,4 +259,61 @@ theorem dual_desarguesian (h : IsDesarguesian P L) : IsDesarguesian L P := by
 theorem desarguesian_iff_dual : IsDesarguesian P L ↔ IsDesarguesian L P :=
   ⟨dual_desarguesian P L, dual_desarguesian L P⟩
 
+variable {P L : Type*} [ProjectivePlane P L]
+
+def points_on_line_equiv_lines_through_point (p : P) (l : L) (h : ¬ p 𝐈 l) : {q : P | q 𝐈 l} ≃ {l' : L | p 𝐈 l'} where
+  toFun := fun ⟨q, hq⟩ ↦ ⟨join p q, (join_incident _ _ (by intro hpq; subst hpq; exact h hq)).left⟩
+  invFun := fun ⟨l', hl'⟩ ↦ ⟨meet l l', (meet_incident _ _ (by intro hll'; subst hll'; exact h hl')).left⟩
+  left_inv := by
+    intro ⟨q, hq⟩
+    simp only [Subtype.mk.injEq]
+    symm
+    apply unique_meet
+    · intro hl
+      apply h
+      rw [hl]
+      exact (join_incident _ _ (by intro hpq; subst hpq; exact h hq)).left
+    · exact hq
+    · exact (join_incident _ _ (by intro hpq; subst hpq; exact h hq)).right
+  right_inv := by
+    intro ⟨l', hl'⟩
+    simp only [Subtype.mk.injEq]
+    symm
+    apply unique_join
+    · intro hp
+      apply h
+      rw [hp]
+      exact (meet_incident _ _ (by intro hll'; subst hll'; exact h hl')).left
+    · exact hl'
+    · exact (meet_incident _ _ (by intro hll'; subst hll'; exact h hl')).right
+
+variable (L) in
+theorem exists_line_not_through_two_points (p₁ p₂ : P) : ∃ l : L, ¬ p₁ 𝐈 l ∧ ¬ p₂ 𝐈 l := by
+  sorry
+
+variable (L) in
+theorem exists_line_not_through_point (p : P) : ∃ l : L, ¬ p 𝐈 l := by
+  obtain ⟨l, hl, _⟩ := exists_line_not_through_two_points L p p
+  exact ⟨l, hl⟩
+
+variable (L) in
+noncomputable def equiv_lines_through_a_point (p₁ p₂ : P) : {l : L | p₁ 𝐈 l} ≃ {l : L | p₂ 𝐈 l} :=
+  let l₀ := Classical.choose (exists_line_not_through_two_points L p₁ p₂)
+  let ⟨h₁, h₂⟩ := Classical.choose_spec (exists_line_not_through_two_points L p₁ p₂)
+  (points_on_line_equiv_lines_through_point p₁ l₀ h₁).symm.trans (points_on_line_equiv_lines_through_point p₂ l₀ h₂)
+
+--Applications of duality:
+
+variable (P) in
+theorem exists_point_not_on_two_lines (l₁ l₂ : L) : ∃ p : P, ¬ p 𝐈 l₁ ∧ ¬ p 𝐈 l₂ :=
+  exists_line_not_through_two_points P l₁ l₂
+
+variable (P) in
+theorem exists_point_not_on_line (l : L) : ∃ p : P, ¬ p 𝐈 l :=
+  exists_line_not_through_point P l
+
+variable (P) in
+noncomputable def equiv_points_on_a_line (l₁ l₂ : L) : {p : P | p 𝐈 l₁} ≃ {p : P | p 𝐈 l₂} :=
+  equiv_lines_through_a_point P l₁ l₂
+
 end ProjectivePlane
