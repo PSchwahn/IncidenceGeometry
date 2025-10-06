@@ -287,9 +287,159 @@ def points_on_line_equiv_lines_through_point (p : P) (l : L) (h : ¬ p 𝐈 l) :
     · exact hl'
     · exact (meet_incident _ _ (by intro hll'; subst hll'; exact h hl')).right
 
+theorem join_symm (p q : P) : join p q = (join q p : L) :=  by
+  by_cases h : p = q
+  · rw [h]
+  apply unique_join
+  · exact Ne.symm h
+  · exact (join_incident p q h).right
+  · exact (join_incident p q h).left
+
+--application of duality
+theorem meet_symm (l₁ l₂ : L) : meet l₁ l₂ = (meet l₂ l₁ : P) :=
+  join_symm l₁ l₂
+
+theorem meet_join (p q r : P) (h₁ : p ≠ q) (h₂ : ¬ r 𝐈 (join p q : L)) : meet (L := L) (join p q) (join p r) = p := by
+  have hpr : p ≠ r := by
+    intro hpr
+    apply h₂
+    rw [← hpr]
+    exact (join_incident p q h₁).left
+  symm
+  apply unique_meet
+  · intro h
+    apply h₂
+    rw [h]
+    exact (join_incident p r hpr).right
+  · exact (join_incident p q h₁).left
+  · exact (join_incident p r hpr).left
+
+theorem join_cancel {p q r s : P} (h₁ : p 𝐈 (join q r : L)) (h₂ : p 𝐈 (join q s : L)) (h₃ : q ≠ r) (h₄ : ¬ s 𝐈 (join q r : L)) : p = q := by
+  have hqs : q ≠ s := by
+    intro hqs
+    apply h₄
+    rw [← hqs]
+    exact (join_incident q r h₃).left
+  rw [← meet_join q r s (L := L) h₃ h₄]
+  · apply unique_meet
+    · intro h
+      apply h₄
+      rw [h]
+      exact (join_incident q s hqs).right
+    · exact h₁
+    · exact h₂
+
 variable (L) in
 theorem exists_line_not_through_two_points (p₁ p₂ : P) : ∃ l : L, ¬ p₁ 𝐈 l ∧ ¬ p₂ 𝐈 l := by
-  sorry
+  obtain ⟨p, pinj, hp⟩ := nondeg P L
+  by_cases h₁ : p₁ = p 0 <;> by_cases h₂ : p₂ = p 0
+  · use join (p 1) (p 2)
+    specialize hp (join (p 1) (p 2)) 0
+    subst h₁ h₂
+    simp only [zero_add, not_and] at hp
+    simp only [and_self]
+    intro h
+    apply hp h (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+    exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right
+  · --at least one of join (p 1) (p 2), join (p 2) (p 3), join (p 1) (p 3)
+    subst h₁
+    by_cases h : p₂ 𝐈 join (L := L) (p 1) (p 2)
+    · by_cases hp₂ : p₂ = p 1
+      · subst hp₂
+        use join (p 2) (p 3)
+        have h₀ := hp (join (p 2) (p 3)) 2
+        have h₁ := hp (join (p 2) (p 3)) 1
+        simp only [Fin.isValue, Fin.reduceAdd, not_and] at h₀
+        simp only [Fin.isValue, Fin.reduceAdd, not_and] at h₁
+        constructor
+        · apply h₀
+          · exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+          · exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right
+        · intro hp1
+          apply h₁ hp1
+          · exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+          · exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right
+      · use join (p 1) (p 3)
+        constructor
+        · intro hp0
+          specialize hp (join (p 1) (p 3)) 3
+          simp only [Fin.isValue, Fin.reduceAdd, not_and] at hp
+          specialize hp (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right hp0
+          exact hp (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+        · intro hp₂'
+          apply hp₂
+          have jne : join (p 1) (p 2) ≠ (join (p 1) (p 3) : L) := by
+            intro hj
+            specialize hp (join (p 1) (p 2)) 1
+            simp only [Fin.isValue, Fin.reduceAdd, not_and] at hp
+            specialize hp (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+              (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right
+            rw [hj] at hp
+            exact hp (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right
+          have m₁ : p 1 = meet (L := L) (join (p 1) (p 2)) (join (p 1) (p 3)) := by
+            apply unique_meet
+            · exact jne
+            · exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+            · exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+          have m₂ : p₂ = meet (L := L) (join (p 1) (p 2)) (join (p 1) (p 3)) := by
+            apply unique_meet
+            · exact jne
+            · exact h
+            · exact hp₂'
+          rw [m₁, m₂]
+    · use join (p 1) (p 2)
+      constructor
+      · intro hp0
+        specialize hp (join (p 1) (p 2)) 0
+        simp only [Fin.isValue, zero_add, not_and] at hp
+        specialize hp hp0 (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+        exact hp (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right
+      · exact h
+  · --at least one of join (p 1) (p 2), join (p 2) (p 3), join (p 1) (p 3)
+    --reduce it to the above case, where p₁ and p₂ are interchanged
+    sorry
+  · --at least one of join (p 0) (p 1), join (p 0) (p 2), join (p 0) (p 3)
+    --if p₁ lies on join (p 0) (p 1):
+    ---if p₂ lies on join (p 0) (p 2)): use join (p 0) (p 3)
+    ---if p₂ does not lie join (p 0) (p 2)): use join (p 0) (p 2)
+    --cycle through (1,2,3)
+    by_cases hp₁₁ : p₁ 𝐈 (join (p 0) (p 1) : L)
+    · by_cases hp₂₂ : p₂ 𝐈 (join (p 0) (p 2) : L)
+      · use join (p 0) (p 3)
+        constructor
+        · intro hp₁₃
+          apply h₁
+          apply join_cancel hp₁₁ hp₁₃ (by intro hne; have := pinj hne; simp at this)
+          specialize hp (join (p 0) (p 1)) 3
+          simp only [Fin.isValue, Fin.reduceAdd, not_and] at hp
+          intro h
+          specialize hp h (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+          exact hp (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right
+        · intro hp₂₃
+          apply h₂
+          apply join_cancel hp₂₂ hp₂₃ (by intro hne; have := pinj hne; simp at this)
+          specialize hp (join (p 0) (p 2)) 2
+          simp only [Fin.isValue, Fin.reduceAdd, not_and] at hp
+          intro h
+          apply hp (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).right h
+          exact (join_incident _ _ (by intro hne; have := pinj hne; simp at this)).left
+      · use join (p 0) (p 2)
+        sorry
+    · by_cases hp₁₂ : p₁ 𝐈 (join (p 0) (p 2) : L)
+      · by_cases hp₂₃ : p₂ 𝐈 (join (p 0) (p 3) : L)
+        · use join (p 0) (p 1)
+          sorry
+        · use join (p 0) (p 3)
+          sorry
+      · by_cases hp₁₃ : p₁ 𝐈 (join (p 0) (p 3) : L) --redundant?
+        · by_cases hp₂₁ : p₂ 𝐈 (join (p 0) (p 1) : L)
+          · use join (p 0) (p 2)
+            sorry
+          · use join (p 0) (p 1)
+        · by_cases hp₂₁ : p₂ 𝐈 (join (p 0) (p 1) : L)
+          · use join (p 0) (p 2)
+            sorry
+          · use join (p 0) (p 1)
 
 variable (L) in
 theorem exists_line_not_through_point (p : P) : ∃ l : L, ¬ p 𝐈 l := by
