@@ -10,7 +10,7 @@ variable {P} in
 /-- Two triangles are axially perspective if the joins of their corresponding vertices
     are collinear. -/
 def CentrallyPerspective (p q : Fin 3 → P) : Prop :=
-  Concurrent P fun i ↦ (join (p i) (q i) : L)
+  ∀ i, p i ≠ q i ∧ Concurrent P fun i ↦ (join (p i) (q i) : L)
 
 variable {P} in
 /-- Two triangles are axially perspective if the meets of their corresponding sides
@@ -22,7 +22,7 @@ def AxiallyPerspective (p q : Fin 3 → P) : Prop :=
 
 variable {P} in
 def CentrallyPerspectiveFrom (p q : Fin 3 → P) (c : P) : Prop :=
-  ∀ i, c 𝐈 (join (p i) (q i) : L)
+  ∀ i, p i ≠ q i ∧ c 𝐈 (join (p i) (q i) : L)
 
 variable {P L} in
 def AxiallyPerspectiveFrom (p q : Fin 3 → P) (a : L) : Prop :=
@@ -46,3 +46,5 @@ def IsLittleDesargian : Prop :=
   meet (P := P) ((join (p 0) (p 1)) : L) ((join (q 0) (q 1)) : L) 𝐈 a →
   meet (P := P) ((join (p 1) (p 2)) : L) ((join (q 1) (q 2)) : L) 𝐈 a →
   meet (P := P) ((join (p 2) (p 0)) : L) ((join (q 2) (q 0)) : L) 𝐈 a
+
+--TODO: test whether the point ≠ point assumptions make sense where they are.
