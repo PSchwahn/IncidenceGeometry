@@ -85,6 +85,43 @@ theorem card_points_on_a_line' (l : L) (hinf : order P L ≥ Cardinal.aleph0) :
   change order P L + 1 = order P L
   rw [Cardinal.add_one_of_aleph0_le hinf]
 
+theorem card_points_on_a_line_except_one {n : ℕ} (h : finorder P L = n) (p : P) (l : L) (hp : p 𝐈 l) (hfin : order P L < Cardinal.aleph0) :
+    Nat.card {q : P | q 𝐈 l ∧ q ≠ p} = n := by
+  have union_point : {q : P | q 𝐈 l} = {q : P | q 𝐈 l ∧ q ≠ p} ∪ {p} := by
+    ext q
+    simp only [Set.mem_setOf_eq, Set.union_singleton, Set.mem_insert_iff]
+    constructor
+    · intro hq
+      by_cases hqp : q = p
+      · left
+        exact hqp
+      · right
+        exact ⟨hq, hqp⟩
+    · intro hq
+      rcases hq with hq | hq
+      · rw [hq]
+        exact hp
+      · exact hq.left
+  have disj_point : Disjoint {q : P | q 𝐈 l ∧ q ≠ p} {p} := by
+    rw [Set.disjoint_singleton_right]
+    simp
+  rw [← @Nat.add_right_cancel_iff _ _ 1, ← card_points_on_a_line P h l (hfin : order P L < Cardinal.aleph0), union_point]
+  unfold Nat.card
+  rw [Cardinal.mk_union_of_disjoint disj_point]
+  simp only [Cardinal.mk_fintype, Fintype.card_unique, Nat.cast_one]
+  rw [Cardinal.toNat_add ?fin (by simp)]
+  · simp
+  · have step₁ : Cardinal.mk {q : P | q 𝐈 l ∧ q ≠ p} ≤ Cardinal.mk {q : P | q 𝐈 l} := by
+      apply Cardinal.mk_le_mk_of_subset
+      intro p hp
+      exact hp.left
+    have step₂ : Cardinal.mk {q : P | q 𝐈 l} < Cardinal.aleph0 := by
+      rw [Cardinal.lt_aleph0_iff_set_finite]
+      apply Nat.finite_of_card_ne_zero
+      rw [card_points_on_a_line P rfl l hfin]
+      simp
+    exact lt_of_le_of_lt step₁ step₂
+
 variable (L) in
 /-- In a projective plane of finite order `n`, every point lies on `n + 1` lines. -/
 theorem card_lines_through_a_point {n : ℕ} (h : finorder P L = n) (p : P) (hfin : order P L < Cardinal.aleph0) :
@@ -111,7 +148,8 @@ theorem dual_finite (hfin : order P L < Cardinal.aleph0) : order L P < Cardinal.
     simp
   exact lt_of_le_of_lt step₁ step₂
 
-variable (P L) in
+variable (P  : Type u) (L : Type v) [ProjectivePlane P L]
+
 theorem order_eq_order_dual :
     Cardinal.lift.{v, u} (order P L) = Cardinal.lift.{u, v} (order L P) := by
   let l₀ := Classical.choice (exists_line P L)
@@ -143,8 +181,41 @@ theorem order_eq_order_dual :
     rw [Cardinal.mk_congr_lift (points_on_line_equiv_lines_through_point p l hl)]
     rfl
 
-variable (P L) in
 theorem finorder_eq_finorder_dual :
     finorder P L = finorder L P := by
   unfold finorder
   rw [←Cardinal.toNat_lift, order_eq_order_dual P L, Cardinal.toNat_lift]
+
+/-- A projective plane of finite order `n` has `n ^ 2 + n + 1` points. -/
+theorem card_points {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardinal.aleph0) :
+    Nat.card P = n * n + n + 1 := by
+  obtain ⟨p⟩ := exists_point P L
+  let P' := (l : {l : L | p 𝐈 l}) × {q : P | q 𝐈 l.val ∧ q ≠ p}
+  have key₁ : Nat.card P = Nat.card P' + 1 := by
+    let f : P' → {q : P | q ≠ p} := fun ⟨_, ⟨q, hq⟩⟩ ↦ ⟨q, hq.right⟩
+    have hf : Function.Bijective f := by sorry
+    --then Nat.card P = Nat.card P' + 1
+    have h₁ : insert p {q : P | q ≠ p} = ⊤ := by
+      ext x
+      simp only [Set.mem_insert_iff, Set.mem_setOf_eq, Set.top_eq_univ, Set.mem_univ, iff_true]
+      by_cases hxp : x = p
+      · exact Or.inl hxp
+      · exact Or.inr hxp
+    have h₂ := Cardinal.mk_insert (a := p) (s := {q : P | q ≠ p})
+    simp only [ne_eq, Set.mem_setOf_eq, not_true_eq_false, not_false_eq_true, forall_const,
+      h₁, Set.top_eq_univ, Cardinal.mk_univ] at h₂
+    have he := Equiv.lift_cardinal_eq (Equiv.ofBijective f hf).symm
+    rw [Cardinal.lift_umax, Cardinal.lift_id' (Cardinal.mk ↑P')] at he
+    unfold Nat.card
+    rw [← he, h₂, Cardinal.toNat_add ?finite (by simp)]
+    simp only [map_one, ne_eq, Cardinal.toNat_lift]
+    · rw [←Cardinal.lift_lt, he, Cardinal.lift_aleph0, Cardinal.lt_aleph0_iff_finite]
+      have hfin' : Nat.card P' > 0 := by
+        sorry
+      exact (Nat.card_pos_iff.mp hfin').right
+  sorry
+
+/-- A projective plane of finite order `n` has `n ^ 2 + n + 1` lines. -/
+theorem card_lines {n : ℕ} (h : finorder P L = n) (hfin : order P L < Cardinal.aleph0) :
+    Nat.card L = n * n + n + 1 :=
+  card_points L P (by rw [finorder_eq_finorder_dual, h]) (dual_finite hfin)
