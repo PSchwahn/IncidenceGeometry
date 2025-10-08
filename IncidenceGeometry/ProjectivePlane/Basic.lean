@@ -9,6 +9,26 @@ theorem nondeg : ∃ p : Fin 4 → P, Function.Injective p ∧
     ∀ (l : L) (i : Fin 4), ¬(p i 𝐈 l ∧ p (i + 1) 𝐈 l ∧ p (i + 2) 𝐈 l) :=
   ProjectivePlane.nondeg'
 
+instance exists_point : Nonempty P := by
+  obtain ⟨p, _⟩ := nondeg P L
+  use p 0
+
+instance exists_line : Nonempty L := by
+  obtain ⟨p⟩ := exists_point P L
+  use join p p
+
+variable {L} in
+/-- Every line has a point. -/
+theorem exists_point_on_line (l : L) : ∃ p : P, p 𝐈 l := by
+  obtain ⟨p, pinj, hp⟩ := nondeg P L
+  by_cases hl : l = join (p 0) (p 1)
+  · use p 0
+    rw [hl]
+    refine (join_incident _ _ ?_).left
+    intro hne; have := pinj hne; simp at this
+  · use meet l (join (p 0) (p 1))
+    exact (meet_incident _ _ hl).left
+
 theorem dual_nondeg : ∃ l : Fin 4 → L, Function.Injective l ∧
     ∀ (p : P) (i : Fin 4), ¬(p 𝐈 l i ∧ p 𝐈 l (i + 1) ∧ p 𝐈 l (i + 2)) := by
   obtain ⟨p, pinj, h⟩ := nondeg P L
