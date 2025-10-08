@@ -51,6 +51,14 @@ def IsParallel (l₁ l₂ : L) : Prop := Intersect P l₁ l₂ → l₁ = l₂
 
 variable {P L : Type*} [instPlane : AffinePlane P L]
 
+theorem join_symm (p q : P) : join p q = (join q p : L) :=  by
+  by_cases h : p = q
+  · rw [h]
+  apply unique_join
+  · exact Ne.symm h
+  · exact (join_incident p q h).right
+  · exact (join_incident p q h).left
+
 theorem parallel_prop (p : P) (l : L) : IsParallel P (par l p) l := by
   intro h
   by_cases hp : p 𝐈 l
