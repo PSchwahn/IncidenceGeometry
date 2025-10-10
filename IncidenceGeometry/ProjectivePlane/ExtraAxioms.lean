@@ -7,8 +7,8 @@ namespace ProjectivePlane
 variable (P L : Type*) [instPlane : ProjectivePlane P L]
 
 variable {P} in
-/-- Two triangles are axially perspective if the joins of their corresponding vertices
-    are collinear. -/
+/-- Two triangles are centrally perspective if the joins of their corresponding vertices
+    are concurrent. -/
 def CentrallyPerspective (p q : Fin 3 → P) : Prop :=
   ∀ i, p i ≠ q i ∧ Concurrent P fun i ↦ (join (p i) (q i) : L)
 
