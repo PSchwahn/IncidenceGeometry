@@ -21,6 +21,11 @@ variable {P : Type u} {L : Type v} [ProjectivePlane P L]
 theorem finorder_eq_of_order_eq {n : ℕ} (h : order P L = ↑n) : finorder P L = n := by
   simp [finorder, h]
 
+--use this to shorten proofs later
+theorem card_points_on_a_line_except_one' (p : P) (l : L) (hp : p 𝐈 l) :
+    Cardinal.mk {q : P | q 𝐈 l ∧ q ≠ p} = order P L := by
+  sorry
+
 variable (P) in
 /-- In a projective plane of finite order `n`, every line has `n + 1` points. -/
 theorem card_points_on_a_line {n : ℕ} (h : finorder P L = n) (l : L) (hfin : order P L < Cardinal.aleph0) :
