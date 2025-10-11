@@ -15,20 +15,22 @@ inductive ProjectiveClosure.Line (P L : Type*) [AffinePlane P L] where
 open ProjectiveClosure.Point
 open ProjectiveClosure.Line
 
-instance (P L : Type*) [AffinePlane P L] :
-    IncidenceGeometry (ProjectiveClosure.Point P L) (ProjectiveClosure.Line P L) where
+variable (P L : Type*) [AffinePlane P L]
+
+instance : IncidenceGeometry (ProjectiveClosure.Point P L) (ProjectiveClosure.Line P L) where
   Incident := fun p l => match p, l with
     | point_of_affine p', line_of_affine l' => p' 𝐈 l'
     | point_of_affine _, line_at_infty => False
     | point_at_infty π _, line_of_affine l' => l' ∈ π
     | point_at_infty _ _, line_at_infty => True
 
-noncomputable instance (P L : Type*) [AffinePlane P L] :
-    ProjectivePlane (ProjectiveClosure.Point P L) (ProjectiveClosure.Line P L) where
+noncomputable instance : ProjectivePlane (ProjectiveClosure.Point P L) (ProjectiveClosure.Line P L) where
   join := fun p q ↦ match p, q with
     | point_of_affine p', point_of_affine q' => line_of_affine (join p' q')
-    | point_of_affine p', point_at_infty π hπ => line_of_affine (directions_equiv_lines_through_a_point p' ⟨π, hπ⟩)
-    | point_at_infty π hπ, point_of_affine q' => line_of_affine (directions_equiv_lines_through_a_point q' ⟨π, hπ⟩)
+    | point_of_affine p', point_at_infty π hπ =>
+      line_of_affine (directions_equiv_lines_through_a_point p' ⟨π, hπ⟩)
+    | point_at_infty π hπ, point_of_affine q' =>
+      line_of_affine (directions_equiv_lines_through_a_point q' ⟨π, hπ⟩)
     | point_at_infty π₁ hπ₁, point_at_infty π₂ hπ₂ => line_at_infty
   join_incident := by
     intro p q hne
@@ -78,7 +80,8 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
       by_cases h : (IsParallel P l₁' l₂') <;> simp only [h, reduceDIte]
       · constructor
         · exact mem_direction_of_self P l₁'
-        · have := (isparallel_iff_eq_directions l₁' l₂' (direction_of_line P l₁').prop (direction_of_line P l₂').prop
+        · have := (isparallel_iff_eq_directions l₁' l₂'
+            (direction_of_line P l₁').prop (direction_of_line P l₂').prop
             (mem_direction_of_self P l₁') (mem_direction_of_self P l₂')).mp h
           conv =>
             lhs
@@ -146,7 +149,8 @@ noncomputable instance (P L : Type*) [AffinePlane P L] :
     use p
     constructor
     · intro i j hij
-      fin_cases i <;> fin_cases j <;> simp only [reduceCtorEq, p, point_of_affine.injEq, point_at_infty.injEq, Subtype.val_inj] at *
+      fin_cases i <;> fin_cases j <;> simp only [reduceCtorEq, p, point_of_affine.injEq,
+        point_at_infty.injEq, Subtype.val_inj] at *
       · apply p'inj at hij
         simp at hij
       · apply p'inj at hij
